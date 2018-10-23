@@ -19,8 +19,15 @@ $_GET = $_POST = $_COOKIE = [];
 
 // create temporary directory
 define('TEMP_DIR', __DIR__ . '/tmp/' . getmypid());
-@mkdir(dirname(TEMP_DIR)); // @ - directory may already exist
-Tester\Helpers::purge(TEMP_DIR);
+// garbage collector
+$__lock = fopen(__DIR__ . '/lock', 'w');
+if (rand(0, 100)) {
+	flock($__lock, LOCK_SH);
+	@mkdir(dirname(TEMP_DIR));
+} elseif (flock($__lock, LOCK_EX)) {
+	Tester\Helpers::purge(dirname(TEMP_DIR));
+}
+@mkdir(TEMP_DIR);
 
 
 if (extension_loaded('xdebug')) {
